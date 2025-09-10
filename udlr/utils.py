@@ -56,6 +56,13 @@ def http_get(url: str) -> requests.Response:
     return session.get(**args)
 
 
+def http_get_decode(url, encoding="utf-8") -> str:
+    content = http_get(url).content
+    assert isinstance(content, bytes)
+    text = content.decode(encoding=encoding)
+    return text
+
+
 PATH = os.path.split(os.path.split(os.path.realpath(__file__))[0])[0]
 
 

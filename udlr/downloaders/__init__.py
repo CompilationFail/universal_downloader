@@ -1,8 +1,8 @@
 from udlr.schema import DownloaderRegistry
 
-from . import u9mm
+from . import u9mm, zhxs
 
-modules = [u9mm]
+modules = [u9mm, zhxs]
 
 
 def register(registry: DownloaderRegistry):
