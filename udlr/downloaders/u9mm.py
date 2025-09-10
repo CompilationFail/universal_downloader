@@ -8,8 +8,8 @@ base_url = "https://m.u9mm.com"
 test_menu_url = "https://m.u9mm.com/novel/list/96999/1.html"  # 红丝绒
 
 
-def get_chapters(url: str, title: str) -> List[Chapter]:
-    text = http_get_decode(url)
+async def get_chapters(url: str, title: str) -> List[Chapter]:
+    text = await http_get_decode(url)
     pos = 0
     lis: List[Chapter] = []
     while True:
@@ -22,10 +22,10 @@ def get_chapters(url: str, title: str) -> List[Chapter]:
     return lis
 
 
-def download_chapter(url: str, title: str, chap: Chapter):
+async def download_chapter(url: str, title: str, chap: Chapter):
     title = chap.get_title()
     url = chap.url
-    text = http_get_decode(url)
+    text = await http_get_decode(url)
     left = text.find('<div id="nr1"')
     left = text.find(">", left + 1) + 1
     right = text.find("</div>", left + 1)

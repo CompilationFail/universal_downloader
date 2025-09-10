@@ -8,8 +8,8 @@ base_url = "https://www.zhenhunxiaoshuo.com"
 test_menu_url = "/woqinaidefayixiaojie/"
 
 
-def get_chapters(url: str, title: str) -> List[Chapter]:
-    text = http_get_decode(url)
+async def get_chapters(url: str, title: str) -> List[Chapter]:
+    text = await http_get_decode(url)
     text, _ = find(text, '<div class="excerpts">', "</div>")
     pos = 0
     lis: List[Chapter] = []
@@ -23,10 +23,13 @@ def get_chapters(url: str, title: str) -> List[Chapter]:
     return lis
 
 
-def download_chapter(url: str, title: str, chap: Chapter):
+async def download_chapter(url: str, title: str, chap: Chapter):
+    chapter_title = chap.get_title()
     url = chap.url
-    text = http_get_decode(url)
-    chap.content, _ = find(text, '<article class="article-content">', "</article>")
+    text = await http_get_decode(url)
+    content, _ = find(text, '<article class="article-content">', "</article>")
+    content = "<h1>" + chapter_title + "</h1>" + content
+    chap.content = content
 
 
 def get_downloader():

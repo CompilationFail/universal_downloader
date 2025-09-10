@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Coroutine, List, Optional
 
 from ebooklib import epub
 from pathvalidate import sanitize_filename
@@ -36,6 +36,8 @@ class Chapter:
                 data = json.loads(file.read())
                 self.title = data["title"]
                 self.content = data["content"]
+                assert isinstance(self.title, str) and len(self.title) > 0
+                assert isinstance(self.content, str) and len(self.content) > 0
             return True
         except Exception as e:
             print(f"Fail to read json({self.path}): ", e)
@@ -62,8 +64,8 @@ class Chapter:
 class NovelDownloader:
     def __init__(
         self,
-        get_chapter_fn: Callable[[str, str], list[Chapter]],
-        download_chapter_fn: Callable[[str, str, Chapter], None],
+        get_chapter_fn: Callable[[str, str], Coroutine[List[Chapter], Any, Any]],
+        download_chapter_fn: Callable[[str, str, Chapter], Coroutine[None, Any, Any]],
     ):
         self.get_chapters = get_chapter_fn
         self.download_chapter = download_chapter_fn
@@ -75,8 +77,8 @@ class NovelDownloader:
         if data.load(data_path):
             return
         try:
-            async with self.sema:
-                self.download_chapter(self.url, self.title, data)
+            await self.download_chapter(self.url, self.title, data)
+            assert data.check_complete()
             data.save(data_path)
             self.update_counter(True)
         except Exception as e:
@@ -84,8 +86,7 @@ class NovelDownloader:
             print("Fail to download chapter:", e)
 
     async def _download(self):
-        self.sema = asyncio.Semaphore(8)
-        self.chapters = self.get_chapters(self.url, self.title)
+        self.chapters = await self.get_chapters(self.url, self.title)
         self.init_counter()
         await asyncio.gather(*[self._download_chapter(data) for data in self.chapters])
 
@@ -159,4 +160,7 @@ class NovelDownloader:
         self.title = title
         self.base_path = abs_path("downloads", sanitize_filename(title))
         asyncio.run(self._download())
-        self._export()
+        if self.fail_count > 0:
+            print("Fail to get some chapter, please rerun")
+        else:
+            self._export()

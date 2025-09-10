@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import os
 from typing import Any, Dict
@@ -44,7 +45,15 @@ def update_headers(key, value):
     HEADERS[key] = value
 
 
-def http_get(url: str) -> requests.Response:
+ASYNC_SEMA = None
+
+
+def set_async_http_max_concurrency(max_concurrence: int):
+    global ASYNC_SEMA
+    ASYNC_SEMA = asyncio.Semaphore(max_concurrence)
+
+
+async def http_get(url: str) -> requests.Response:
     session = get_session()
     args: Dict[str, Any] = {"url": url}
     if USE_PROXY:
@@ -53,11 +62,16 @@ def http_get(url: str) -> requests.Response:
         args["cookies"] = COOKIES
     if HEADERS is not None:
         args["HEADERS"] = HEADERS
-    return session.get(**args)
+    if ASYNC_SEMA is not None:
+        async with ASYNC_SEMA:
+            resp = session.get(**args)
+    else:
+        resp = session.get(**args)
+    return resp
 
 
-def http_get_decode(url, encoding="utf-8") -> str:
-    content = http_get(url).content
+async def http_get_decode(url, encoding="utf-8") -> str:
+    content = (await http_get(url)).content
     assert isinstance(content, bytes)
     text = content.decode(encoding=encoding)
     return text
