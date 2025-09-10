@@ -48,7 +48,7 @@ class Chapter:
             "content": self.content,
         }
         with open(path, "w") as file:
-            json.dump(data, file)
+            json.dump(data, file, ensure_ascii=False)
 
     def get_title(self) -> str:
         assert self.title is not None, "Missing chapter title"

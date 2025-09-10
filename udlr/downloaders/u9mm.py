@@ -22,7 +22,7 @@ def get_chapters(url: str, title: str) -> List[Chapter]:
         pos = text.find("<li><", pos + 1)
         if pos == -1:
             break
-        chapter_url, pos = find(text, "href", '"', pos + 1)
+        chapter_url, pos = find(text, 'href="', '"', pos + 1)
         chapter_title, pos = find(text, ">", "<", pos + 1)
         lis.append(Chapter.construct(base_url + chapter_url, title=chapter_title))
     return lis

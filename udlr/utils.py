@@ -82,10 +82,12 @@ def find(
     strip: bool = True,
 ):
     left = text.find(begin, start)
+    if offset == 0:
+        offset = len(begin)
     right = text.find(end, left + offset)
     text = text[left:right]
     if remove_boundary:
-        text = text[len(begin) : -len(end)]
+        text = text[len(begin) :]
     if strip:
         text = text.strip()
     return text, right
