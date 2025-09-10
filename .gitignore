@@ -5,6 +5,8 @@ build/
 dist/
 wheels/
 downloads/
+.ruff_cache/
+**/.DS_Store
 *.egg-info
 
 # Virtual environments
