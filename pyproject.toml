@@ -1,0 +1,21 @@
+[project]
+name = "universal-downloader"
+version = "0.1.0"
+description = "Download everything you need"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["ebooklib>=0.19", "pathvalidate>=3.3.1", "requests>=2.32.5"]
+
+[tool.uv]
+index-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 1110
+multi_line_output = 3
+include_trailing_comma = true
+use_parentheses = true
