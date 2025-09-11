@@ -1,85 +1,33 @@
-import asyncio
 import os
 from typing import Any, Dict
 
 import requests
 
-PROXY_ADDRESS = "http://127.0.0.1:7890"
-HEADERS = None
-COOKIES = None
-SESSION = None
-USE_PROXY = False
-
-
-def get_session() -> requests.Session:
-    global SESSION
-    if SESSION is None:
-        SESSION = requests.session()
-    return SESSION
-
-
-def set_proxy(use: bool):
-    global USE_PROXY
-    USE_PROXY = use
-
-
-def set_cookies(cookies):
-    global COOKIES
-    COOKIES = cookies
-
-
-def set_headers(headers):
-    global HEADERS
-    HEADERS = headers
-
-
-def update_headers(key, value):
-    global HEADERS
-    if HEADERS is None:
-        HEADERS = {}
-    HEADERS[key] = value
-
-
-MAX_CONCURRENCY = -1
-ASYNC_SEMA = None
-
-
-def set_async_http_max_concurrency(max_concurrence: int):
-    global ASYNC_SEMA, MAX_CONCURRENCY
-    if MAX_CONCURRENCY != max_concurrence:
-        MAX_CONCURRENCY = max_concurrence
-        ASYNC_SEMA = asyncio.Semaphore(max_concurrence)
-
-
-def get_current_connections():
-    if ASYNC_SEMA is None:
-        return -1
-    return MAX_CONCURRENCY - ASYNC_SEMA._value
+from .context import get_session
 
 
 def build_args(**kwargs) -> Dict[str, Any]:
-    if USE_PROXY:
+    session = get_session()
+    if session.use_proxy:
         kwargs["proxies"] = {
-            "http_proxy": PROXY_ADDRESS,
-            "https_proxy": PROXY_ADDRESS,
+            "http_proxy": session.proxy_address,
+            "https_proxy": session.proxy_address,
         }
-    if COOKIES is not None and "cookies" not in kwargs:
-        kwargs["cookies"] = COOKIES
-    if HEADERS is not None:
-        headers = HEADERS
+    if session.cookies is not None and "cookies" not in kwargs:
+        kwargs["cookies"] = session.cookies
+    if session.headers is not None:
+        headers = session.headers
         headers.update(kwargs.get("headers", {}))
-        kwargs["headers"] = HEADERS
+        kwargs["headers"] = session.headers
     return kwargs
 
 
 async def http_get(url: str, **kwargs) -> requests.Response:
     args = build_args(**kwargs)
     session = get_session()
-    if ASYNC_SEMA is not None:
-        async with ASYNC_SEMA:
-            resp = session.get(url, **args)
-    else:
-        resp = session.get(url, **args)
+    http_session = session.get_http_session()
+    async with session.semaphore:
+        resp = http_session.get(url, **args)
     return resp
 
 
@@ -99,15 +47,14 @@ def http_get_file(url, file_path) -> bool:
         current_size = os.path.getsize(file_path)
     else:
         current_size = 0
-    session = get_session()
+    http_session = get_session().get_http_session()
     args = build_args(
         stream=True,
         headers={"Range": f"bytes={current_size}-"} if current_size > 0 else {},
         timeout=10,
     )
-
     try:
-        resp: requests.Response = session.get(url, **args)
+        resp: requests.Response = http_session.get(url, **args)
         resp.raise_for_status()  # Check for HTTP errors
 
         # Determine total size from headers

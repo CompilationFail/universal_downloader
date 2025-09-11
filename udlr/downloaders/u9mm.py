@@ -1,7 +1,7 @@
 from typing import List
 
 from udlr.novel import Chapter, NovelDownloader
-from udlr.schema import DownloaderInvoker, DownloaderRegistry
+from udlr.schema import DownloaderInvoker, DownloaderMessage, DownloaderRegistry
 from udlr.utils import find
 from udlr.utils.http import http_get_decode
 
@@ -43,6 +43,13 @@ def register(registry: DownloaderRegistry):
         DownloaderInvoker(
             lambda s: s.find("u9mm") != -1,
             get_downloader,
-            f"u9mm downloader: for novels in {base_url}",
+            DownloaderMessage(
+                "u9mm downloader",
+                f"for novels in {base_url}",
+                {
+                    "title": (None, "please provide title for this novel"),
+                },
+                {"proxy": (True, "might be faster with proxy")},
+            ),
         )
     )

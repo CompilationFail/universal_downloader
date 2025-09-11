@@ -1,5 +1,14 @@
 # Universal Downloader
 
+Downloading various types of media
+- text:
+  - novels
+- image
+  - mangas
+- videos:
+  - download directly from a m3u8 file
+  - download from websites
+
 ## Supported Sites
 
 novel sites:
@@ -23,8 +32,8 @@ python3 -m udlr [url] [title]
 
 examples:
 ```bash
-python3 -m udlr "https://m.u9mm.com/novel/list/96999/1.html" novel1
-python3 -m udlr "https://www.zhenhunxiaoshuo.com/woqinaidefayixiaojie/" novel2
+python3 -m udlr "https://m.u9mm.com/novel/list/96999/1.html" --title novel1 --no-proxy
+python3 -m udlr "https://www.zhenhunxiaoshuo.com/woqinaidefayixiaojie/" --title novel2
 ```
 
 ## Developer Notes

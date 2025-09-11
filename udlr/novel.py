@@ -140,9 +140,12 @@ class NovelDownloader:
         print("Saving to", path)
         epub.write_epub(path, book, {})
 
-    def download(self, url, title):
+    def download(self, url, **kwargs):
+        title = kwargs.get("title", None)
+        if title is None:
+            raise Exception("Missing args --title for novel downloader")
         self.url = url
-        self.title = title
+        self.title = kwargs["title"]
         self.base_path = abs_path("downloads", sanitize_filename(title))
         if asyncio.run(self._download()):
             self._export()

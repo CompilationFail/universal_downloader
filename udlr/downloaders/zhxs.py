@@ -1,7 +1,7 @@
 from typing import List
 
 from udlr.novel import Chapter, NovelDownloader
-from udlr.schema import DownloaderInvoker, DownloaderRegistry
+from udlr.schema import DownloaderInvoker, DownloaderMessage, DownloaderRegistry
 from udlr.utils import find
 from udlr.utils.http import http_get_decode
 
@@ -42,6 +42,12 @@ def register(registry: DownloaderRegistry):
         DownloaderInvoker(
             lambda s: s.find("zhenhunxiaoshuo.com") != -1,
             get_downloader,
-            f"zhxs downloader: for novels in 镇魂小说, {base_url}",
+            DownloaderMessage(
+                "zhxs downloader",
+                f"for novels in {base_url}",
+                {
+                    "title": (None, "please provide title for this novel"),
+                },
+            ),
         )
     )

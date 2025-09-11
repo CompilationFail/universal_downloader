@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Content Downloader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .container { max-width: 900px; }
+        .content-area {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #text-content {
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        #image-content {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="display-5">URL Content Downloader</h1>
+            <p class="text-muted">Download and view text or images from any URL</p>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <form id="downloadForm">
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="urlInput"
+                               placeholder="Enter URL (e.g., https://example.com/file.txt or https://example.com/image.jpg)"
+                               required>
+                        <button type="submit" class="btn btn-primary">
+                            <span id="submit-text">Download</span>
+                            <span id="loading-spinner" class="spinner-border spinner-border-sm" style="display: none;"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="error-alert" class="alert alert-danger mt-3" style="display: none;"></div>
+
+        <div id="content-result" class="content-area" style="display: none;">
+            <h4>Downloaded Content:</h4>
+            <div id="text-content"></div>
+            <img id="image-content" class="d-block mx-auto">
+            <div id="content-info" class="text-muted mt-2"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('downloadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const url = document.getElementById('urlInput').value;
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const submitText = document.getElementById('submit-text');
+            const spinner = document.getElementById('loading-spinner');
+            const errorAlert = document.getElementById('error-alert');
+            const contentResult = document.getElementById('content-result');
+            const textContent = document.getElementById('text-content');
+            const imageContent = document.getElementById('image-content');
+            const contentInfo = document.getElementById('content-info');
+
+            // Reset UI
+            errorAlert.style.display = 'none';
+            contentResult.style.display = 'none';
+            submitText.textContent = 'Downloading...';
+            spinner.style.display = 'inline-block';
+            submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('url', url);
+
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Download failed');
+                }
+
+                if (data.type === 'text') {
+                    textContent.textContent = data.content;
+                    imageContent.style.display = 'none';
+                    textContent.style.display = 'block';
+
+                    if (data.truncated) {
+                        contentInfo.textContent = `Content truncated. Original length: ${data.original_length} characters.`;
+                    } else {
+                        contentInfo.textContent = '';
+                    }
+
+                } else if (data.type === 'image') {
+                    const imageUrl = `/content/${data.filename}?t=${Date.now()}`;
+                    imageContent.src = imageUrl;
+                    imageContent.alt = "Downloaded image";
+                    textContent.style.display = 'none';
+                    imageContent.style.display = 'block';
+                    contentInfo.textContent = `Image type: ${data.content_type}`;
+                }
+
+                contentResult.style.display = 'block';
+
+            } catch (error) {
+                errorAlert.textContent = error.message;
+                errorAlert.style.display = 'block';
+            } finally {
+                submitText.textContent = 'Download';
+                spinner.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
