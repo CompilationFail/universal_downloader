@@ -1,6 +1,6 @@
 from . import downloaders
 from .schema import DownloaderRegistry
-from .utils import set_async_http_max_concurrency, set_proxy
+from .utils.http import set_async_http_max_concurrency, set_proxy
 
 
 def register(registry: DownloaderRegistry):

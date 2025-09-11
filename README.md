@@ -6,7 +6,7 @@ novel sites:
 
 ```plain
 https://m.u9mm.com
-https://www.zhenhunxiaoshuo.com'
+https://www.zhenhunxiaoshuo.com
 ```
 
 manga sites:

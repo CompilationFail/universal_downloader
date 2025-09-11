@@ -8,6 +8,7 @@ from ebooklib import epub
 from pathvalidate import sanitize_filename
 
 from .utils import abs_path, hash
+from .utils.progress import Progress
 
 
 @dataclass
@@ -80,34 +81,18 @@ class NovelDownloader:
             await self.download_chapter(self.url, self.title, data)
             assert data.check_complete()
             data.save(data_path)
-            self.update_counter(True)
+            self.prog.incr(True)
         except Exception as e:
-            self.update_counter(False)
+            self.prog.incr(False)
             print("Fail to download chapter:", e)
 
     async def _download(self):
         self.chapters = await self.get_chapters(self.url, self.title)
-        self.init_counter()
+        self.prog = Progress(
+            len(self.chapters), 0, msg="Downloading chapters:", has_fail=True
+        )
         await asyncio.gather(*[self._download_chapter(data) for data in self.chapters])
-
-    def init_counter(self):
-        self.counter = 0
-        self.fail_count = 0
-        print(
-            "Downloading chapters: [%3d/%3d], fails: %3d"
-            % (self.counter, len(self.chapters), self.fail_count),
-            end="\r",
-        )
-
-    def update_counter(self, success: bool):
-        self.counter += 1
-        if not success:
-            self.fail_count += 1
-        print(
-            "Downloading chapters: [%3d/%3d], fails: %3d"
-            % (self.counter, len(self.chapters), self.fail_count),
-            end="\r",
-        )
+        return self.prog.fail == 0
 
     def _export(self):
         book = epub.EpubBook()
@@ -159,8 +144,7 @@ class NovelDownloader:
         self.url = url
         self.title = title
         self.base_path = abs_path("downloads", sanitize_filename(title))
-        asyncio.run(self._download())
-        if self.fail_count > 0:
-            print("Fail to get some chapter, please rerun")
-        else:
+        if asyncio.run(self._download()):
             self._export()
+        else:
+            print("Fail to get some chapter, please rerun")

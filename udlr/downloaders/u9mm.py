@@ -2,7 +2,8 @@ from typing import List
 
 from udlr.novel import Chapter, NovelDownloader
 from udlr.schema import DownloaderInvoker, DownloaderRegistry
-from udlr.utils import find, http_get_decode
+from udlr.utils import find
+from udlr.utils.http import http_get_decode
 
 base_url = "https://m.u9mm.com"
 test_menu_url = "https://m.u9mm.com/novel/list/96999/1.html"  # 红丝绒
@@ -38,4 +39,10 @@ def get_downloader():
 
 
 def register(registry: DownloaderRegistry):
-    registry.register(DownloaderInvoker(lambda s: s.find("u9mm") != -1, get_downloader))
+    registry.register(
+        DownloaderInvoker(
+            lambda s: s.find("u9mm") != -1,
+            get_downloader,
+            f"u9mm downloader: for novels in {base_url}",
+        )
+    )

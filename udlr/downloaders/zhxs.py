@@ -2,7 +2,8 @@ from typing import List
 
 from udlr.novel import Chapter, NovelDownloader
 from udlr.schema import DownloaderInvoker, DownloaderRegistry
-from udlr.utils import find, http_get_decode
+from udlr.utils import find
+from udlr.utils.http import http_get_decode
 
 base_url = "https://www.zhenhunxiaoshuo.com"
 test_menu_url = "/woqinaidefayixiaojie/"
@@ -38,5 +39,9 @@ def get_downloader():
 
 def register(registry: DownloaderRegistry):
     registry.register(
-        DownloaderInvoker(lambda s: s.find("zhenhunxiaoshuo.com") != -1, get_downloader)
+        DownloaderInvoker(
+            lambda s: s.find("zhenhunxiaoshuo.com") != -1,
+            get_downloader,
+            f"zhxs downloader: for novels in 镇魂小说, {base_url}",
+        )
     )
