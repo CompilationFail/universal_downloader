@@ -38,6 +38,19 @@ python3 -m udlr "https://www.zhenhunxiaoshuo.com/woqinaidefayixiaojie/" --title 
 
 ## Developer Notes
 
+```plain
+.
+├── udlr/
+│   ├── __main__.py # entrypoint to commandline tool
+│   ├── novel.py    # wrapper for novel downloader
+│   ├──downloads/
+│      └── downloaders, each implements functions needed
+│              and return a downloader (using wrapper)
+├── downloads/
+│   └── downloaded content...
+└── README.md
+```
+
 Use uv to manage dependencies
 
 Initialize the environments
